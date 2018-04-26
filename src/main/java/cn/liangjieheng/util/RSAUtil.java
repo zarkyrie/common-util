@@ -1,32 +1,41 @@
 package cn.liangjieheng.util;
 
-import sun.misc.BASE64Decoder;
-import sun.misc.BASE64Encoder;
 
 import javax.crypto.Cipher;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.net.URL;
 import java.security.Key;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.SecureRandom;
+import java.util.Base64;
 
 public class RSAUtil {
 
-    /** 指定加密算法为DESede */
+    /**
+     * 指定加密算法为DESede
+     */
     private static String ALGORITHM = "RSA";
-    /** 指定key的大小 */
+    /**
+     * 指定key的大小
+     */
     private static int KEYSIZE = 1024;
-    /** 指定公钥存放文件 */
+    /**
+     * 指定公钥存放文件
+     */
     private static String PUBLIC_KEY_FILE = "PrivateKey";
-    /** 指定私钥存放文件 */
+    /**
+     * 指定私钥存放文件
+     */
     private static String PRIVATE_KEY_FILE = "PublicKey";
+
     /**
      * 生成密钥对
      */
-    private static void generateKeyPair() throws Exception{
+    private static void generateKeyPair() throws Exception {
         /** RSA算法要求有一个可信任的随机数源 */
         SecureRandom sr = new SecureRandom();
         /** 为RSA算法创建一个KeyPairGenerator对象 */
@@ -49,11 +58,12 @@ public class RSAUtil {
         oos2.close();
     }
 
+
     /**
      * 加密方法
      * source： 源数据
      */
-    public static String encrypt(String source) throws Exception{
+    public static String encrypt(String source) throws Exception {
         generateKeyPair();
         /** 将文件中的公钥对象读出 */
         ObjectInputStream ois = new ObjectInputStream(new FileInputStream(PUBLIC_KEY_FILE));
@@ -65,35 +75,39 @@ public class RSAUtil {
         byte[] b = source.getBytes();
         /** 执行加密操作 */
         byte[] b1 = cipher.doFinal(b);
-        BASE64Encoder encoder = new BASE64Encoder();
-        return encoder.encode(b1);
+        Base64.Encoder encoder = Base64.getEncoder();
+        return encoder.encodeToString(b1);
     }
 
     /**
      * 解密算法
      * cryptograph:密文
      */
-    public static String decrypt(String cryptograph) throws Exception{
+    public static String decrypt(String cryptograph) throws Exception {
         /** 将文件中的私钥对象读出 */
         ObjectInputStream ois = new ObjectInputStream(new FileInputStream(PRIVATE_KEY_FILE));
         Key key = (Key) ois.readObject();
         /** 得到Cipher对象对已用公钥加密的数据进行RSA解密 */
         Cipher cipher = Cipher.getInstance(ALGORITHM);
         cipher.init(Cipher.DECRYPT_MODE, key);
-        BASE64Decoder decoder = new BASE64Decoder();
-        byte[] b1 = decoder.decodeBuffer(cryptograph);
+        Base64.Decoder decoder = Base64.getDecoder();
+        byte[] bytes = decoder.decode(cryptograph);
         /** 执行解密操作 */
-        byte[] b = cipher.doFinal(b1);
+        byte[] b = cipher.doFinal(bytes);
         return new String(b);
+
+
     }
+
+
     public static void main(String[] args) throws Exception {
         //生成加密码的格式:40000000171111201111,29,山东日照职业技术学院
         String source = "04000000171111201111,18,山东日照职业技术学院";//要加密的字符串
         String cryptograph = encrypt(source);//生成的密文
-        System.out.println("加密："+cryptograph);
+        System.out.println("加密：" + cryptograph);
 
         String target = decrypt(cryptograph);//解密密文
-        System.out.println("解密："+target);
+        System.out.println("解密：" + target);
 
         //System.out.println("解密2："+decrypt("C4xqCDEJ8I7b1ABAfGFPHIZq2IXJMoBXV0NvTYK5idBY02LzxW4ohn6JIXybhFK/aFbJRY+oxn8s7jTAXAuHT+GJP+x1wKtiDuvesglSRmWc0zs8AroWSv/gy4Jlg41+cn2PtDqOFtMKZuloMm7sUuNmRVQV6MEpmGWA6ZUbIGc="));
 
@@ -106,6 +120,9 @@ public class RSAUtil {
         //System.out.println("解码6:"+decrypt("aj9oEa2M63IINch5m6r7Xn0kgcQZ6gep6O0NWDNGNUyEGh7E1KFYhekQ80KNmDOzVE0ce0J0OU6QtLGekP0cnv0pzjC+vDZNU65547QI/Yro8AcVRBz6fiZS+dvFPeLGHHXEorm/x1fEcCKdAFxNLo+6zU1Nv09wtssgH3QN1Bo="));
 
         //System.out.println("解码6:"+decrypt("X4j+19+R2q5zGu0LZnoeEXbBPUY7KvCMSDVKObf5q7jvU1woAwwAMOzlrMSiyIRfyzo94SUAJV767YCMQTA8cXzRT7r1ZFt7mpwyA6KVbLdkh7UbjiJOYhxXxqq2GoPiyR0fhYxWCHrd7+pe30/IAObcK1uSDTbg87sul8kFAs4="));
+
+        URL url = Thread.currentThread().getContextClassLoader().getResource("");
+        System.out.println(url.getPath());
 
     }
 }
